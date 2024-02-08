@@ -9,7 +9,7 @@
 
                 <!-- PAGE-HEADER -->
                 <div class="page-header">
-                    <h1 class="page-title">Yangliklar</h1>
+                    <h1 class="page-title">Masxulotlar</h1>
                 </div>
                 <!-- PAGE-HEADER END -->
                 
@@ -19,7 +19,7 @@
                     <div class="col-xl-6">
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title">Yangliklar ro`yxati</h3>
+                                <h3 class="card-title">Maxsulotlar ro`yxati</h3>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -27,19 +27,21 @@
                                         <thead>
                                             <tr>
                                                 <th>№</th>
-                                                <th>Sarlavha</th>
-                                                <th>O`zgartirish</th>
-                                                <th>O`chirish</th>
+                                                <th>Categorya</th>
+                                                <th>Nom</th>
+                                                <th>Qoldiq</th>
+                                                <th>Kirim qilish</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for item in items %}
+                                            {% for product in products %}
                                             <tr>
                                                 <td>{{forloop.counter}}</td>
-                                                <td>{{item.title}}</td>
-                                                <td><a href="{% url 'item_update' item.id %}" class="btn btn-icon  btn-success" style="color: white;"><i class="fa fa-arrow-right"></i></a></td>
-                                                <td><a href="{% url 'item_delete' item.id %}" class="btn btn-icon  btn-danger"><i class="fe fe-trash"></i></a></td>
-                                            </tr>
+                                                <td>{{product.category.name}}</td>
+                                                <td>{{product.name}}</td>
+                                                <td>{{product.quantity}}</td>
+                                                <td><button data-bs-target="#modalcreate{{product.id}}" data-bs-toggle="modal" href="javascript:void(0)" class="btn btn-primary">...</button></td>
+                                                </tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
@@ -49,7 +51,28 @@
                     </div>
                 </div>
                 <!-- End Row -->
-
+                {% for i in products %}
+                <div class="modal fade" id="modalcreate{{i.id}}">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content modal-content-demo">
+                            <div class="modal-header">
+                                <h6 class="modal-title">Kirimni qilish</h6><button aria-label="Close" class="btn-close" data-bs-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <form action="{% url 'dashboard:create_enter' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="number" class="form-control" name="quantity">
+                                    <input type="hidden" value="{{i.id}}" name="product_id">
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-primary" type="submit">Saqlash</button> 
+                                <button class="btn btn-light" data-bs-dismiss="modal">Qaytish</button>
+                            </form>    
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
             <!-- CONTAINER CLOSED -->
 

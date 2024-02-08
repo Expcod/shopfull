@@ -48,7 +48,8 @@ def category_delete(request, id):
 # products
 
 def products(request):
-    ...
+    products = models.Product.objects.all()
+    return render(request, 'dashboard/products/list.html', {'products':products})
 
 
 def product_create(request):
@@ -81,3 +82,35 @@ def product_create(request):
             )
 
     return render(request, 'dashboard/products/create.html', context)
+
+
+def create_enter(request):
+    if request.method == 'POST':
+        product_id = request.POST['product_id']
+        quantity = int(request.POST['quantity'])
+        models.EnterProduct.objects.create(
+            product_id=product_id,
+            quantity=quantity
+        )
+        return redirect('dashboard:list_enter')
+    return render(request, 'dashboard/enter/create.html', {'products':models.Product.objects.all()})
+
+
+def update_enter(request, id):
+    if request.method == 'POST':
+        quantity = int(request.POST['quantity'])
+        enter = models.EnterProduct.objects.get(id=id)
+        enter.quantity = quantity
+        enter.save()
+    return redirect('dashboard:list_enter')
+
+
+def delete_enter(request, id):
+    models.EnterProduct.objects.get(id=id).delete()
+    return redirect('dashboard:list_enter')
+
+
+def list_enter(request):
+    enters = models.EnterProduct.objects.all()
+    context = {'enters':enters}
+    return render(request, 'dashboard/enter/list.html', context)

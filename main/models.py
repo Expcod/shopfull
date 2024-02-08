@@ -129,3 +129,25 @@ class CartProduct(models.Model):
 #     i.product.quantity -= i.quantity
 #     i.product.save()
     
+
+class EnterProduct(models.Model):
+    quantity = models.IntegerField()
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
+    product_name = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.quantity}"
+    
+    def save(self, *args, **kwargs):
+        self.product_name = self.product.name
+        if self.pk:
+            enter = EnterProduct.objects.get(pk=self.pk)
+            product = enter.product # None/Product
+            product.quantity -= enter.quantity
+            product.quantity += self.quantity
+            product.save()
+        else:
+            self.product.quantity += self.quantity
+            self.product.save()
+        super(EnterProduct, self).save(*args, **kwargs)
