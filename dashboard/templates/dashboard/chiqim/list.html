@@ -21,7 +21,7 @@
                 <!-- Row -->
                 <div class="row">
                     <div class="col-2"></div>
-                    <div class="col-xl-8">
+                    <div class="col-xl-6">
                         <div class="card">
                             <div class="card-header">
                                 <h3 class="card-title">Chiqimlar ro`yxati</h3>
@@ -34,28 +34,14 @@
                                                 <th>№</th>
                                                 <th>Maxsulot nomi</th>
                                                 <th>Soni</th>
-                                                <th>Sana</th>
-                                                <th>O`zgartirish</th>
-                                                <th>O`chirish</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for enter in enters %}
+                                            {% for card in result_list %}
                                             <tr>
                                                 <td>{{forloop.counter}}</td>
-                                                {% if enter.product %}
-                                                <td>{{enter.product.name}}</td>
-                                                {% else %}
-                                                <td>{{enter.product_name}}</td>
-                                                {% endif %}
-                                                <td>{{enter.quantity}}</td>
-                                                <td>{{enter.created_at|date:'Y-m-d H:i'}}</td>
-                                                {% if enter.product %}
-                                                <td><button data-bs-target="#modalupdate{{enter.id}}" data-bs-toggle="modal" href="javascript:void(0)" class="btn btn-success">O'zgartirish</button></td>
-                                                {% else %}
-                                                <td><button class="btn btn-success">O'zgartirish</button></td>
-                                                {% endif %}
-                                                <td><button data-bs-target="#modaldelete{{enter.id}}" data-bs-toggle="modal" href="javascript:void(0)" class="btn btn-danger">O'chirish</button></td>
+                                                <td>{{card.name}}</td>
+                                                <td>{{card.total_quantity}}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -66,7 +52,7 @@
                     </div>
                 </div>
                 <!-- End Row -->
-                {% for i in enters %}
+                {% for i in orders %}
                 <div class="modal fade" id="modalupdate{{i.id}}">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content modal-content-demo">
