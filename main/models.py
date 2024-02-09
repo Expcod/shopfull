@@ -70,10 +70,6 @@ class WishList(models.Model):
         # else:
         #     raise ValueError
         
-        if self.pk:
-            print(222)
-        else:
-            print(111)
 
         super(WishList, self).save(*args, **kwargs)
     

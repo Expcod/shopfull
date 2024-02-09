@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from main import models
+from collections import defaultdict
 
+from django.http import HttpResponse
+import xlwt
 
 def dashboard(request):
     categorys = models.Category.objects.all()
@@ -114,3 +117,48 @@ def list_enter(request):
     enters = models.EnterProduct.objects.all()
     context = {'enters':enters}
     return render(request, 'dashboard/enter/list.html', context)
+
+#chiqim
+
+def expenditure(request):
+    cartproducts = models.CartProduct.objects.filter(card__is_active=False)
+    
+    dict1 = defaultdict(int)
+    for cartproduct in cartproducts:
+        dict1[cartproduct.product.name] += cartproduct.quantity
+    result_list = [{'name': name, 'total_quantity': total_quantity} for name, total_quantity in dict1.items()]
+
+    return render(request, 'dashboard/chiqim/list.html', {'result_list': result_list})
+
+
+# enter export to excel
+
+def export_enter_product_to_excel(request):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="enter_products.xls"'
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Enter Products')
+
+    columns = [
+        {'name': 'ID', 'width': 2000},
+        {'name': 'Product Name', 'width': 6000},
+        {'name': 'Quantity', 'width': 2000},
+        {'name': 'Created At', 'width': 8000},
+    ]
+
+    for col_num, column_data in enumerate(columns):
+        ws.write(0, col_num, column_data['name'])
+        ws.col(col_num).width = column_data['width']
+
+    enter_products = models.EnterProduct.objects.all()
+
+    for row_num, enter_product in enumerate(enter_products, start=1):
+        ws.write(row_num, 0, enter_product.product_id)
+        ws.write(row_num, 1, enter_product.product_name)
+        ws.write(row_num, 2, enter_product.quantity)
+        ws.write(row_num, 3, enter_product.created_at.strftime('%Y-%m-%d %H:%M:%S'))
+
+    wb.save(response)
+    return response
+
