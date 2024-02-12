@@ -6,6 +6,16 @@ from collections import defaultdict
 from django.http import HttpResponse
 import xlwt
 
+
+import openpyxl
+from datetime import datetime
+from sqlalchemy import create_engine, Table, Column, Integer, String, DateTime
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+from main.models import Product 
+
+
 def dashboard(request):
     categorys = models.Category.objects.all()
     products = models.Product.objects.all()
@@ -162,3 +172,74 @@ def export_enter_product_to_excel(request):
     wb.save(response)
     return response
 
+# import excel
+
+excel_file = "malumotlar.xlsx"
+engine = create_engine('sqlite:///malumotlar.db', echo=True)
+Base = declarative_base()
+
+class Product(Base):
+    __tablename__ = 'products'
+
+    id = Column(Integer, primary_key=True)
+    quantity = Column(Integer)
+    product_name = Column(String)
+    created_at = Column(DateTime, default=datetime.now)
+
+Base.metadata.create_all(engine)
+
+def read_excel_and_save_to_db(file_name):
+    wb = openpyxl.load_workbook(file_name)
+    sheet = wb.active
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    for row in sheet.iter_rows(values_only=True):
+        quantity, product_name, created_at = row
+        product = Product(quantity=quantity, product_name=product_name, created_at=created_at)
+        session.add(product)
+
+    session.commit()
+    session.close()
+
+if __name__ == "__main__":
+    read_excel_and_save_to_db(excel_file)
+
+# filterlash
+
+engine = create_engine('sqlite:///malumotlar.db', echo=True)
+
+
+class Product(Base):
+    __tablename__ = 'products'
+
+    id = Column(Integer, primary_key=True)
+    quantity = Column(Integer)
+    product_name = Column(String)
+    created_at = Column(DateTime, default=datetime.now)
+
+
+def filter_products(min_quantity, start_date, end_date):
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    filtered_products = session.query(Product).filter(
+        Product.quantity >= min_quantity,
+        Product.created_at >= start_date,
+        Product.created_at <= end_date
+    ).all()
+
+    session.close()
+    return filtered_products
+
+if __name__ == "__main__":
+    min_quantity = 10  
+    start_date = datetime(2023, 1, 1)  
+    end_date = datetime(2023, 12, 31)  
+
+    filtered_products = filter_products(min_quantity, start_date, end_date)
+
+    print("Filtered Products:")
+    for product in filtered_products:
+        print(f"ID: {product.id}, Name: {product.product_name}, Quantity: {product.quantity}, Created At: {product.created_at}")
