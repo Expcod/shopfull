@@ -1,19 +1,22 @@
+from itertools import chain
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from main import models
-from collections import defaultdict
-
 from django.http import HttpResponse
+from django.core.paginator import Paginator
+from django.core.exceptions import FieldError
+
+from collections import defaultdict
+from main import models
+from main.models import Product 
+from . funcs import search_with_fields, pagenator_page
+
 import xlwt
-
-
 import openpyxl
 from datetime import datetime
 from sqlalchemy import create_engine, Table, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
-from main.models import Product 
 
 
 def dashboard(request):
@@ -54,9 +57,6 @@ def category_delete(request, id):
     category = models.Category.objects.get(id=id)
     category.delete()
     return redirect('category_list')
-
-
-
 
 # products
 
@@ -174,72 +174,134 @@ def export_enter_product_to_excel(request):
 
 # import excel
 
-excel_file = "malumotlar.xlsx"
-engine = create_engine('sqlite:///malumotlar.db', echo=True)
-Base = declarative_base()
+# excel_file = "malumotlar.xlsx"
+# engine = create_engine('sqlite:///malumotlar.db', echo=True)
+# Base = declarative_base()
 
-class Product(Base):
-    __tablename__ = 'products'
+# class Product(Base):
+#     __tablename__ = 'products'
 
-    id = Column(Integer, primary_key=True)
-    quantity = Column(Integer)
-    product_name = Column(String)
-    created_at = Column(DateTime, default=datetime.now)
+#     id = Column(Integer, primary_key=True)
+#     quantity = Column(Integer)
+#     product_name = Column(String)
+#     created_at = Column(DateTime, default=datetime.now)
 
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)
 
-def read_excel_and_save_to_db(file_name):
-    wb = openpyxl.load_workbook(file_name)
-    sheet = wb.active
+# def read_excel_and_save_to_db(file_name):
+#     wb = openpyxl.load_workbook(file_name)
+#     sheet = wb.active
 
-    Session = sessionmaker(bind=engine)
-    session = Session()
+#     Session = sessionmaker(bind=engine)
+#     session = Session()
 
-    for row in sheet.iter_rows(values_only=True):
-        quantity, product_name, created_at = row
-        product = Product(quantity=quantity, product_name=product_name, created_at=created_at)
-        session.add(product)
+#     for row in sheet.iter_rows(values_only=True):
+#         quantity, product_name, created_at = row
+#         product = Product(quantity=quantity, product_name=product_name, created_at=created_at)
+#         session.add(product)
 
-    session.commit()
-    session.close()
+#     session.commit()
+#     session.close()
 
-if __name__ == "__main__":
-    read_excel_and_save_to_db(excel_file)
+# if __name__ == "__main__":
+#     read_excel_and_save_to_db(excel_file)
 
 # filterlash
 
-engine = create_engine('sqlite:///malumotlar.db', echo=True)
+# engine = create_engine('sqlite:///malumotlar.db', echo=True)
 
 
-class Product(Base):
-    __tablename__ = 'products'
+# class Product(Base):
+#     __tablename__ = 'products'
 
-    id = Column(Integer, primary_key=True)
-    quantity = Column(Integer)
-    product_name = Column(String)
-    created_at = Column(DateTime, default=datetime.now)
+#     id = Column(Integer, primary_key=True)
+#     quantity = Column(Integer)
+#     product_name = Column(String)
+#     created_at = Column(DateTime, default=datetime.now)
 
 
-def filter_products(min_quantity, start_date, end_date):
-    Session = sessionmaker(bind=engine)
-    session = Session()
+# def filter_products(min_quantity, start_date, end_date):
+#     Session = sessionmaker(bind=engine)
+#     session = Session()
 
-    filtered_products = session.query(Product).filter(
-        Product.quantity >= min_quantity,
-        Product.created_at >= start_date,
-        Product.created_at <= end_date
-    ).all()
+#     filtered_products = session.query(Product).filter(
+#         Product.quantity >= min_quantity,
+#         Product.created_at >= start_date,
+#         Product.created_at <= end_date
+#     ).all()
 
-    session.close()
-    return filtered_products
+#     session.close()
+#     return filtered_products
 
-if __name__ == "__main__":
-    min_quantity = 10  
-    start_date = datetime(2023, 1, 1)  
-    end_date = datetime(2023, 12, 31)  
+# if __name__ == "__main__":
+#     min_quantity = 10  
+#     start_date = datetime(2023, 1, 1)  
+#     end_date = datetime(2023, 12, 31)  
 
-    filtered_products = filter_products(min_quantity, start_date, end_date)
+#     filtered_products = filter_products(min_quantity, start_date, end_date)
 
-    print("Filtered Products:")
-    for product in filtered_products:
-        print(f"ID: {product.id}, Name: {product.product_name}, Quantity: {product.quantity}, Created At: {product.created_at}")
+#     print("Filtered Products:")
+#     for product in filtered_products:
+#         print(f"ID: {product.id}, Name: {product.product_name}, Quantity: {product.quantity}, Created At: {product.created_at}")
+
+# list enter filterlash
+
+
+# def list_enter(request):
+#     result = search_with_fields(request)
+#     try: 
+#         enters = models.EnterProduct.objects.filter(**result)
+
+#     except FieldError as err:
+#         del result[err.__doc__.split()[3][1:-1]]
+#         enters = models.EnterProduct.objects.filter(**result)
+
+#     context = {'enters': pagenator_page(enters, 1, request)}
+#     return render(request, 'dashboard/enter/list.html', context)
+
+#required
+def list_enter(request):
+    name = request.GET.get('name')
+    quantity = request.GET.get('quantity')
+    created_at = request.GET.get('created_at')
+    if name and quantity and created_at:
+        enters = models.EnterProduct.objects.filter(
+            product__name=name,
+            quantity=quantity,
+            created_at__gt = created_at,
+            created_at__lte = created_at,
+        )
+    else:
+        enters = models.EnterProduct.objects.all()
+    context = {'enters':enters}
+    return render(request, 'dashboard/enter/list.html', context)
+
+# product filter
+
+# def product_filter(request):
+#     result = search_with_fields(request)
+#     try: 
+#         products = models.Product.objects.filter(**result)
+
+#     except FieldError as err:
+#         del result[err.__doc__.split()[3][1:-1]]
+#         products = models.Product.objects.filter(**result)
+
+#     context = {'products': pagenator_page(products, 1, request)}
+#     return render(request, 'dashboard/products/list.html', context)
+
+def product_filter(request):
+    name = request.GET.get('name')
+    quantity = request.GET.get('quantity')
+    # created_at = request.GET.get('created_at')
+    if name and quantity:
+        products = models.Product.objects.filter(
+            product__name=name,
+            quantity=quantity,
+            # created_at__gt = created_at,
+            # created_at__lte = created_at,
+        )
+    else:
+        products = models.Product.objects.all()
+    context = {'products':products}
+    return render(request, 'dashboard/products/list.html', context)
