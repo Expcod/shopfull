@@ -43,6 +43,10 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'import_export',
     'django_excel',
+    'Api.apps.ApiConfig',
+    # third party
+    'rest_framework'
+
 ]
 
 MIDDLEWARE = [

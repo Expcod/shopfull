@@ -9,7 +9,7 @@ from django.core.exceptions import FieldError
 from collections import defaultdict
 from main import models
 from main.models import Product 
-from . funcs import search_with_fields, pagenator_page
+from . funcs import search_with_fields,search_with_fields1, pagenator_page
 
 import xlwt
 import openpyxl
@@ -60,9 +60,10 @@ def category_delete(request, id):
 
 # products
 
-def products(request):
-    products = models.Product.objects.all()
-    return render(request, 'dashboard/products/list.html', {'products':products})
+# def products(request):
+#     products = models.Product.objects.all()
+#     context = {'products':products}
+#     return render(request, 'dashboard/products/list.html', {'products':products})
 
 
 def product_create(request):
@@ -123,10 +124,10 @@ def delete_enter(request, id):
     return redirect('dashboard:list_enter')
 
 
-def list_enter(request):
-    enters = models.EnterProduct.objects.all()
-    context = {'enters':enters}
-    return render(request, 'dashboard/enter/list.html', context)
+# def list_enter(request):
+#     enters = models.EnterProduct.objects.all()
+#     context = {'enters':enters}
+#     return render(request, 'dashboard/enter/list.html', context)
 
 #chiqim
 
@@ -247,61 +248,62 @@ def export_enter_product_to_excel(request):
 # list enter filterlash
 
 
-# def list_enter(request):
-#     result = search_with_fields(request)
-#     try: 
-#         enters = models.EnterProduct.objects.filter(**result)
-
-#     except FieldError as err:
-#         del result[err.__doc__.split()[3][1:-1]]
-#         enters = models.EnterProduct.objects.filter(**result)
-
-#     context = {'enters': pagenator_page(enters, 1, request)}
-#     return render(request, 'dashboard/enter/list.html', context)
-
-#required
 def list_enter(request):
-    name = request.GET.get('name')
-    quantity = request.GET.get('quantity')
-    created_at = request.GET.get('created_at')
-    if name and quantity and created_at:
-        enters = models.EnterProduct.objects.filter(
-            product__name=name,
-            quantity=quantity,
-            created_at__gt = created_at,
-            created_at__lte = created_at,
-        )
-    else:
-        enters = models.EnterProduct.objects.all()
-    context = {'enters':enters}
+    result = search_with_fields(request)
+    try: 
+        enters = models.EnterProduct.objects.filter(**result)
+
+    except FieldError as err:
+        a =  result[err.__doc__.split()[3][1:-1]]
+        del a
+        enters = models.EnterProduct.objects.filter(**result)
+
+    context = {'enters': pagenator_page(enters, 3, request)}
     return render(request, 'dashboard/enter/list.html', context)
+
+# #required
+# def list_enter(request):
+#     name = request.GET.get('name')
+#     quantity = request.GET.get('quantity')
+#     created_at = request.GET.get('created_at')
+#     if name and quantity and created_at:
+#         enters = models.EnterProduct.objects.filter(
+#             product__name=name,
+#             quantity=quantity,
+#             created_at__gt = created_at,
+#             created_at__lte = created_at,
+#         )
+#     else:
+#         enters = models.EnterProduct.objects.all()
+#     context = {'enters':enters}
+#     return render(request, 'dashboard/enter/list.html', context)
 
 # product filter
 
-# def product_filter(request):
-#     result = search_with_fields(request)
-#     try: 
-#         products = models.Product.objects.filter(**result)
+def products(request):
+    result = search_with_fields1(request)
+    try: 
+        products = models.Product.objects.filter(**result)
 
-#     except FieldError as err:
-#         del result[err.__doc__.split()[3][1:-1]]
-#         products = models.Product.objects.filter(**result)
+    except FieldError as err:
+    #    del result[err.__doc__.split()[3][1:-1]]
+       products = models.Product.objects.filter(**result)
 
-#     context = {'products': pagenator_page(products, 1, request)}
-#     return render(request, 'dashboard/products/list.html', context)
-
-def product_filter(request):
-    name = request.GET.get('name')
-    quantity = request.GET.get('quantity')
-    # created_at = request.GET.get('created_at')
-    if name and quantity:
-        products = models.Product.objects.filter(
-            product__name=name,
-            quantity=quantity,
-            # created_at__gt = created_at,
-            # created_at__lte = created_at,
-        )
-    else:
-        products = models.Product.objects.all()
-    context = {'products':products}
+    context = {'products': pagenator_page(products, 3, request)}
     return render(request, 'dashboard/products/list.html', context)
+
+# def product_filter(request):
+#     name = request.GET.get('name')
+#     quantity = request.GET.get('quantity')
+#     # created_at = request.GET.get('created_at')
+#     if name and quantity:
+#         products = models.Product.objects.filter(
+#             product__name=name,
+#             quantity=quantity,
+#             # created_at__gt = created_at,
+#             # created_at__lte = created_at,
+#         )
+#     else:
+#         products = models.Product.objects.all()
+#     context = {'products':products}
+#     return render(request, 'dashboard/products/list.html', context)

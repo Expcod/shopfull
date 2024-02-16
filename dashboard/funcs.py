@@ -28,3 +28,13 @@ def pagenator_page(list, num, request):
     except EmptyPage:
         list = paginator.page(paginator.num_pages)
     return list
+
+def search_with_fields1(request):
+    result = {}
+    for key, value in request.GET.items():
+        if value:
+            if key == 'name':
+                key = 'name'
+            result[key] = value
+
+    return result
