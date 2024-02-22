@@ -3,5 +3,3 @@ django-excel==0.0.10
 pillow==10.2.0
 pandas
 django-excel
-openpyxl 
-sqlalchemy
